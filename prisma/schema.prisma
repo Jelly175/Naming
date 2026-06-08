@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +5,176 @@ generator client {
 
 datasource db {
   provider = "mysql"
+}
+
+enum BabyNameGender {
+  BOY
+  GIRL
+  UNISEX
+
+  @@map("baby_name_gender")
+}
+
+enum PaymentStatus {
+  CREATED
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+
+  @@map("payment_status")
+}
+
+enum UnlockType {
+  SINGLE_NAME
+  PREMIUM_PACK
+  FULL_ACCESS
+  CONSULTATION
+
+  @@map("unlock_type")
+}
+
+enum ConsultationStatus {
+  NEW
+  CONTACTED
+  CONVERTED
+  CLOSED
+
+  @@map("consultation_status")
+}
+
+model BabyName {
+  id                 BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  name               String         @db.VarChar(100)
+  slug               String         @unique @db.VarChar(140)
+  gender             BabyNameGender
+  origin             String?        @db.VarChar(120)
+  meaning            String         @db.Text
+  startingLetter     String         @map("starting_letter") @db.Char(1)
+  numerologyNumber   Int?           @map("numerology_number") @db.UnsignedTinyInt
+  styleLabel         String?        @map("style_label") @db.VarChar(60)
+  isPremium          Boolean        @default(false) @map("is_premium")
+  school             String?        @db.VarChar(100)
+  religion           String?        @db.VarChar(80)
+  nameLength         Int            @map("name_length") @db.UnsignedTinyInt
+  pronunciationScore Decimal?       @map("pronunciation_score") @db.Decimal(4, 2)
+  usabilityScore     Decimal?       @map("usability_score") @db.Decimal(4, 2)
+  rarityScore        Decimal?       @map("rarity_score") @db.Decimal(4, 2)
+  searchCount        Int            @default(0) @map("search_count") @db.UnsignedInt
+  favoriteCount      Int            @default(0) @map("favorite_count") @db.UnsignedInt
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime       @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  premiumUnlocks PremiumUnlock[]
+
+  @@index([gender, religion, startingLetter], map: "idx_baby_names_filters")
+  @@index([gender, numerologyNumber], map: "idx_baby_names_gender_numerology")
+  @@index([isPremium, rarityScore], map: "idx_baby_names_premium_rarity")
+  @@index([styleLabel], map: "idx_baby_names_style")
+  @@index([searchCount], map: "idx_baby_names_popularity")
+  @@fulltext([name, meaning], map: "ft_baby_names_name_meaning")
+  @@map("baby_names")
+}
+
+model User {
+  id        BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  fullName  String?  @map("full_name") @db.VarChar(120)
+  phone     String?  @unique @db.VarChar(20)
+  email     String?  @unique @db.VarChar(190)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  consultations  Consultation[]
+  payments       Payment[]
+  premiumUnlocks PremiumUnlock[]
+  searches       Search[]
+
+  @@map("users")
+}
+
+model PremiumUnlock {
+  id         BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  userId     BigInt     @map("user_id") @db.UnsignedBigInt
+  paymentId  BigInt?    @map("payment_id") @db.UnsignedBigInt
+  babyNameId BigInt?    @map("baby_name_id") @db.UnsignedBigInt
+  unlockType UnlockType @map("unlock_type")
+  startsAt   DateTime   @default(now()) @map("starts_at") @db.Timestamp(0)
+  expiresAt  DateTime?  @map("expires_at") @db.Timestamp(0)
+  isActive   Boolean    @default(true) @map("is_active")
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
+
+  babyName BabyName? @relation(fields: [babyNameId], references: [id], onDelete: SetNull)
+  payment  Payment?  @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive, expiresAt], map: "idx_premium_unlocks_user_access")
+  @@index([paymentId], map: "idx_premium_unlocks_payment")
+  @@index([babyNameId], map: "idx_premium_unlocks_baby_name")
+  @@map("premium_unlocks")
+}
+
+model Search {
+  id               BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
+  userId           BigInt?         @map("user_id") @db.UnsignedBigInt
+  query            String?         @db.VarChar(120)
+  gender           BabyNameGender?
+  religion         String?         @db.VarChar(80)
+  startingLetter   String?         @map("starting_letter") @db.Char(1)
+  numerologyNumber Int?            @map("numerology_number") @db.UnsignedTinyInt
+  resultCount      Int             @default(0) @map("result_count") @db.UnsignedInt
+  filters          Json?
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt], map: "idx_searches_created")
+  @@index([userId, createdAt], map: "idx_searches_user_created")
+  @@index([query], map: "idx_searches_query")
+  @@index([gender, religion, startingLetter], map: "idx_searches_filters")
+  @@map("searches")
+}
+
+model Payment {
+  id                BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  userId            BigInt        @map("user_id") @db.UnsignedBigInt
+  provider          String        @default("razorpay") @db.VarChar(40)
+  razorpayOrderId   String        @unique @map("razorpay_order_id") @db.VarChar(100)
+  razorpayPaymentId String?       @unique @map("razorpay_payment_id") @db.VarChar(100)
+  amountPaise       Int           @map("amount_paise") @db.UnsignedInt
+  currency          String        @default("INR") @db.Char(3)
+  status            PaymentStatus @default(CREATED)
+  receipt           String?       @db.VarChar(100)
+  metadata          Json?
+  paidAt            DateTime?     @map("paid_at") @db.Timestamp(0)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  premiumUnlocks PremiumUnlock[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, status], map: "idx_payments_user_status")
+  @@index([status, createdAt], map: "idx_payments_status_created")
+  @@map("payments")
+}
+
+model Consultation {
+  id                     BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  userId                 BigInt?            @map("user_id") @db.UnsignedBigInt
+  phone                  String             @db.VarChar(20)
+  parentName             String?            @map("parent_name") @db.VarChar(120)
+  babyGender             BabyNameGender?    @map("baby_gender")
+  preferredLanguage      String?            @map("preferred_language") @db.VarChar(60)
+  requirements           String?            @db.Text
+  status                 ConsultationStatus @default(NEW)
+  whatsappConversationId String?            @map("whatsapp_conversation_id") @db.VarChar(120)
+  source                 String?            @db.VarChar(80)
+  createdAt              DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime           @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([phone], map: "idx_consultations_phone")
+  @@index([status, createdAt], map: "idx_consultations_status_created")
+  @@index([userId, createdAt], map: "idx_consultations_user_created")
+  @@map("consultations")
 }

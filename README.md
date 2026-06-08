@@ -121,6 +121,10 @@ src/
 prisma/
   schema.prisma         MySQL schema definition
 
+database/
+  schema.sql            Raw MySQL schema with indexes and relationships
+  README.md             Table explanations and scaling notes
+
 prisma.config.ts        Prisma 7 config
 ```
 
@@ -232,7 +236,7 @@ analytics package           Product analytics
 
 Recommended next steps:
 
-1. Finalize the MySQL schema in `prisma/schema.prisma`
+1. Review the MySQL schema in `database/schema.sql` and `prisma/schema.prisma`
 2. Build `/names` search UI
 3. Add name search API
 4. Add numerology calculation service
