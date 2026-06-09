@@ -132,6 +132,7 @@ src/
   lib/                  Database and third-party integration helpers
     db/client.ts        Secure pooled MySQL/Prisma client
     db/health.ts        Database health-check helper
+    numerology/index.ts Reusable TypeScript numerology engine
   repositories/         Database queries live here
   services/             Business logic lives here
   types/                Shared TypeScript types
@@ -148,6 +149,7 @@ database/
 docs/
   api/name-search.md    Baby name search API filters, response, and performance notes
   design/mobile-design-system.md Premium mobile UI design system
+  numerology-engine.md  Numerology utility usage and examples
 
 prisma.config.ts        Prisma 7 config
 ```
