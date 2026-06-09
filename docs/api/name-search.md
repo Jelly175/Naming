@@ -195,6 +195,25 @@ The maximum page size is intentionally small because most users are on mobile de
 }
 ```
 
+When a premium name is locked for the current user, protected fields are masked:
+
+```json
+{
+  "id": "2",
+  "name": "Premium name",
+  "meaning": "Unlock with credits to view this meaning.",
+  "isPremium": true,
+  "isLocked": true,
+  "unlockCost": 1
+}
+```
+
+Pass `x-user-id` when calling the API to let the backend check active unlocks:
+
+```txt
+x-user-id: 1
+```
+
 ---
 
 ## Error response

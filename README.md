@@ -128,13 +128,17 @@ src/
     payment/            Future premium and payment components
 
   config/               App-level config such as site name
+    premium.ts          Server-owned credit cost constants
   features/             Larger feature modules as the app grows
   lib/                  Database and third-party integration helpers
     db/client.ts        Secure pooled MySQL/Prisma client
     db/health.ts        Database health-check helper
+    http/auth.ts        Starter API user-id validation helper
     numerology/index.ts Reusable TypeScript numerology engine
   repositories/         Database queries live here
+    premium-repository.ts Credit deduction and premium unlock queries
   services/             Business logic lives here
+    premium-service.ts  Premium unlock business layer
   types/                Shared TypeScript types
   utils/                Small reusable helpers
 
@@ -148,6 +152,7 @@ database/
 
 docs/
   api/name-search.md    Baby name search API filters, response, and performance notes
+  api/premium-unlock.md Premium credits, unlock APIs, and masking behavior
   design/mobile-design-system.md Premium mobile UI design system
   numerology-engine.md  Numerology utility usage and examples
 

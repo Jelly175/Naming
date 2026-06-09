@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ZodError } from "zod";
 
 import { parseNameSearchParams } from "@/features/names/search-params";
+import { ApiAuthError, getOptionalUserId } from "@/lib/http/auth";
 import { searchNames } from "@/services/name-service";
 
 export const runtime = "nodejs";
@@ -28,7 +29,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const filters = parseNameSearchParams(request.nextUrl.searchParams);
-    const result = await searchNames(filters);
+    const viewerUserId = getOptionalUserId(request);
+    const result = await searchNames(filters, { viewerUserId });
 
     return NextResponse.json(
       {
@@ -47,6 +49,19 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof ZodError) {
       return validationErrorResponse(error);
+    }
+
+    if (error instanceof ApiAuthError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: {
+            code: "INVALID_USER_CONTEXT",
+            message: error.message,
+          },
+        },
+        { status: 401 },
+      );
     }
 
     console.error("Name search API failed", error);

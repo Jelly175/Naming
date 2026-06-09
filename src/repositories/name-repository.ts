@@ -1,5 +1,7 @@
 import { Prisma } from "@/generated/prisma/client";
+import { PREMIUM_NAME_UNLOCK_COST } from "@/config/premium";
 import { getDb } from "@/lib/db/client";
+import { findUnlockedBabyNameIds } from "@/repositories/premium-repository";
 import type {
   BabyName,
   BabyNameGender,
@@ -9,6 +11,10 @@ import type {
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
+
+export type NameSearchContext = {
+  viewerUserId?: bigint;
+};
 
 const dbGenderByApiGender: Record<BabyNameGender, string> = {
   boy: "BOY",
@@ -46,23 +52,31 @@ function optionalNumber(value: string | number | null) {
   return value === null ? undefined : Number(value);
 }
 
-function mapRowToBabyName(row: BabyNameSearchRow): BabyName {
+function mapRowToBabyName(
+  row: BabyNameSearchRow,
+  unlockedBabyNameIds: Set<string>,
+): BabyName {
+  const isPremium = Boolean(row.isPremium);
+  const isLocked = isPremium && !unlockedBabyNameIds.has(row.id);
+
   return {
     id: row.id,
-    name: row.name,
+    name: isLocked ? "Premium name" : row.name,
     slug: row.slug,
-    meaning: row.meaning,
+    meaning: isLocked ? "Unlock with credits to view this meaning." : row.meaning,
     gender: toApiGender(row.gender),
     religion: row.religion ?? undefined,
     origin: row.origin ?? undefined,
     startingLetter: row.startingLetter,
     numerologyNumber: row.numerologyNumber ?? undefined,
     styleLabel: row.styleLabel ?? undefined,
-    isPremium: Boolean(row.isPremium),
+    isPremium,
     nameLength: row.nameLength,
     pronunciationScore: optionalNumber(row.pronunciationScore),
     usabilityScore: optionalNumber(row.usabilityScore),
     rarityScore: optionalNumber(row.rarityScore),
+    isLocked,
+    unlockCost: isLocked ? PREMIUM_NAME_UNLOCK_COST : undefined,
   };
 }
 
@@ -126,7 +140,10 @@ function buildOrderBy(params: NameSearchParams) {
   `;
 }
 
-export async function findNames(params: NameSearchParams): Promise<NameSearchResult> {
+export async function findNames(
+  params: NameSearchParams,
+  context?: NameSearchContext,
+): Promise<NameSearchResult> {
   const page = params.page ?? DEFAULT_PAGE;
   const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
   const offset = (page - 1) * pageSize;
@@ -134,7 +151,7 @@ export async function findNames(params: NameSearchParams): Promise<NameSearchRes
   const orderBySql = buildOrderBy(params);
   const db = getDb();
 
-  const [rows, countRows] = await Promise.all([
+  const [rows, countRows, unlockedBabyNameIds] = await Promise.all([
     db.$queryRaw<BabyNameSearchRow[]>`
       SELECT
         CAST(id AS CHAR) AS id,
@@ -163,13 +180,16 @@ export async function findNames(params: NameSearchParams): Promise<NameSearchRes
       FROM baby_names
       ${whereSql}
     `,
+    context?.viewerUserId
+      ? findUnlockedBabyNameIds(context.viewerUserId)
+      : Promise.resolve(new Set<string>()),
   ]);
 
   const total = Number(countRows[0]?.total ?? 0);
   const totalPages = total === 0 ? 0 : Math.ceil(total / pageSize);
 
   return {
-    items: rows.map(mapRowToBabyName),
+    items: rows.map((row) => mapRowToBabyName(row, unlockedBabyNameIds)),
     pagination: {
       page,
       pageSize,

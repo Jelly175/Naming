@@ -17,6 +17,8 @@ export type BabyName = {
   pronunciationScore?: number;
   usabilityScore?: number;
   rarityScore?: number;
+  isLocked?: boolean;
+  unlockCost?: number;
 };
 
 export type NameSearchParams = {

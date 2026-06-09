@@ -65,6 +65,7 @@ Important fields:
 - `full_name`
 - `phone`
 - `email`
+- `credits_balance`
 
 Main indexes:
 
@@ -77,6 +78,34 @@ Why:
 
 - Phone is useful for WhatsApp funnels.
 - Email is optional but useful for receipts and future login.
+- Credits let users unlock premium names without trusting client-side payment state.
+
+---
+
+### `credit_transactions`
+
+Stores credit purchases, unlock deductions, refunds, and manual adjustments.
+
+Important fields:
+
+- `user_id`
+- `premium_unlock_id`
+- `transaction_type`
+- `credits_delta`
+- `balance_after`
+- `reason`
+
+Main indexes:
+
+```sql
+KEY idx_credit_transactions_user_created (user_id, created_at)
+KEY idx_credit_transactions_unlock (premium_unlock_id)
+```
+
+Why:
+
+- Provides an audit trail for every credit change.
+- Makes premium unlock support and reconciliation easier.
 
 ---
 
@@ -209,9 +238,11 @@ users 1 -> many searches
 users 1 -> many payments
 users 1 -> many premium_unlocks
 users 1 -> many consultations
+users 1 -> many credit_transactions
 
 baby_names 1 -> many premium_unlocks
 payments 1 -> many premium_unlocks
+premium_unlocks 1 -> many credit_transactions
 ```
 
 Deletion behavior:

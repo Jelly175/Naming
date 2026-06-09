@@ -6,6 +6,7 @@ CREATE TABLE users (
   full_name VARCHAR(120) NULL,
   phone VARCHAR(20) NULL,
   email VARCHAR(190) NULL,
+  credits_balance INT UNSIGNED NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
@@ -121,6 +122,27 @@ CREATE TABLE premium_unlocks (
     ON DELETE SET NULL,
   CONSTRAINT fk_premium_unlocks_baby_name
     FOREIGN KEY (baby_name_id) REFERENCES baby_names (id)
+    ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE credit_transactions (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NOT NULL,
+  premium_unlock_id BIGINT UNSIGNED NULL,
+  transaction_type ENUM('PURCHASE', 'UNLOCK', 'REFUND', 'ADJUSTMENT') NOT NULL,
+  credits_delta INT NOT NULL,
+  balance_after INT UNSIGNED NOT NULL,
+  reason VARCHAR(160) NULL,
+  metadata JSON NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_credit_transactions_user_created (user_id, created_at),
+  KEY idx_credit_transactions_unlock (premium_unlock_id),
+  CONSTRAINT fk_credit_transactions_user
+    FOREIGN KEY (user_id) REFERENCES users (id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_credit_transactions_unlock
+    FOREIGN KEY (premium_unlock_id) REFERENCES premium_unlocks (id)
     ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

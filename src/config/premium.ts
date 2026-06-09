@@ -1,0 +1,2 @@
+export const PREMIUM_NAME_UNLOCK_COST = 1;
+export const FREE_USER_VISIBLE_PREMIUM_LIMIT = 0;

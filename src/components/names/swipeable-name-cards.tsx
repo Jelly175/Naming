@@ -19,6 +19,8 @@ export type SwipeableBabyName = {
   origin?: string;
   usabilityScore?: number;
   isPremium?: boolean;
+  isLocked?: boolean;
+  unlockCost?: number;
   styleLabel?: string;
 };
 
@@ -27,6 +29,7 @@ type SwipeableNameCardsProps = {
   className?: string;
   unlockHref?: string;
   consultationHref?: string;
+  viewerUserId?: string;
 };
 
 const SWIPE_THRESHOLD = 80;
@@ -36,9 +39,15 @@ export function SwipeableNameCards({
   consultationHref = "/consultation",
   names,
   unlockHref = "/premium",
+  viewerUserId,
 }: SwipeableNameCardsProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [savedNames, setSavedNames] = useState<Set<string>>(() => new Set());
+  const [unlockedNames, setUnlockedNames] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  const [unlockError, setUnlockError] = useState<string>();
 
   const activeName = names[activeIndex];
   const activeKey = activeName ? getNameKey(activeName, activeIndex) : "empty";
@@ -87,6 +96,48 @@ export function SwipeableNameCards({
   }
 
   const isSaved = savedNames.has(activeKey);
+  const isLocked = Boolean(activeName.isLocked) && !unlockedNames.has(activeKey);
+
+  async function handleUnlock() {
+    if (!activeName.id || !viewerUserId) {
+      window.location.href = unlockHref;
+      return;
+    }
+
+    setIsUnlocking(true);
+    setUnlockError(undefined);
+
+    try {
+      const response = await fetch("/api/premium/unlock", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": viewerUserId,
+        },
+        body: JSON.stringify({ babyNameId: activeName.id }),
+      });
+      const payload = (await response.json()) as {
+        ok: boolean;
+        error?: { message?: string };
+      };
+
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error?.message ?? "Unable to unlock name.");
+      }
+
+      setUnlockedNames((currentUnlockedNames) => {
+        const nextUnlockedNames = new Set(currentUnlockedNames);
+        nextUnlockedNames.add(activeKey);
+        return nextUnlockedNames;
+      });
+    } catch (error) {
+      setUnlockError(
+        error instanceof Error ? error.message : "Unable to unlock name.",
+      );
+    } finally {
+      setIsUnlocking(false);
+    }
+  }
 
   return (
     <section className={cn("grid gap-4", className)} aria-label="Swipe names">
@@ -134,7 +185,11 @@ export function SwipeableNameCards({
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             whileDrag={{ rotate: 3, scale: 0.98 }}
           >
-            <SwipeCard name={activeName} saved={isSaved} />
+            <SwipeCard
+              locked={isLocked}
+              name={activeName}
+              saved={isSaved}
+            />
           </motion.div>
         </AnimatePresence>
       </div>
@@ -154,13 +209,15 @@ export function SwipeableNameCards({
           Save
         </Button>
 
-        <Link
-          className="inline-flex min-h-12 items-center justify-center rounded-full bg-slate-950 px-3 text-sm font-semibold tracking-[-0.01em] text-white shadow-card transition-all duration-200 hover:bg-slate-800 active:scale-[0.99]"
-          href={unlockHref}
+        <button
+          className="inline-flex min-h-12 items-center justify-center rounded-full bg-slate-950 px-3 text-sm font-semibold tracking-[-0.01em] text-white shadow-card transition-all duration-200 hover:bg-slate-800 disabled:opacity-60 active:scale-[0.99]"
+          disabled={isUnlocking || !isLocked}
+          onClick={handleUnlock}
+          type="button"
         >
           <Lock aria-hidden="true" className="mr-1.5 size-4" />
-          Unlock
-        </Link>
+          {isUnlocking ? "Unlocking" : isLocked ? "Unlock" : "Open"}
+        </button>
 
         <Link
           className="inline-flex min-h-12 items-center justify-center rounded-full bg-green-600 px-3 text-sm font-semibold tracking-[-0.01em] text-white shadow-card transition-all duration-200 hover:bg-green-700 active:scale-[0.99]"
@@ -185,14 +242,21 @@ export function SwipeableNameCards({
           />
         ))}
       </div>
+      {unlockError ? (
+        <p className="text-center text-sm font-medium text-danger">
+          {unlockError}
+        </p>
+      ) : null}
     </section>
   );
 }
 
 function SwipeCard({
+  locked,
   name,
   saved,
 }: {
+  locked: boolean;
   name: SwipeableBabyName;
   saved: boolean;
 }) {
@@ -200,10 +264,21 @@ function SwipeCard({
 
   return (
     <Card
-      className="flex min-h-[31rem] touch-pan-y select-none flex-col justify-between"
+      className="relative flex min-h-[31rem] touch-pan-y select-none flex-col justify-between overflow-hidden"
       padding="lg"
       variant={isPremium ? "premium" : "elevated"}
     >
+      {locked ? (
+        <div className="absolute inset-x-5 top-24 z-10 rounded-3xl bg-white/85 p-4 text-center shadow-float backdrop-blur-xl ring-1 ring-white/60">
+          <Lock aria-hidden="true" className="mx-auto mb-2 size-5 text-slate-950" />
+          <p className="text-sm font-bold text-slate-950">
+            Unlock with {name.unlockCost ?? 1} credit
+          </p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            Premium name and meaning are protected until unlocked.
+          </p>
+        </div>
+      ) : null}
       <div>
         <div className="mb-6 flex items-start justify-between gap-3">
           <div className="flex flex-wrap gap-2">
@@ -230,7 +305,7 @@ function SwipeCard({
 
         <Text
           as="h3"
-          className={isPremium ? "text-white" : undefined}
+          className={cn(isPremium ? "text-white" : undefined, locked && "blur-sm")}
           variant="display"
         >
           {name.name}
@@ -240,6 +315,7 @@ function SwipeCard({
           className={cn(
             "mt-3 text-base leading-7",
             isPremium ? "text-white/70" : "text-slate-600",
+            locked && "blur-sm",
           )}
         >
           {name.meaning}

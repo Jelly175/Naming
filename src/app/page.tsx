@@ -15,6 +15,7 @@ import { Badge, Button, Card, Input, Text } from "@/components/ui";
 export default function Home() {
   const featuredNames = [
     {
+      id: "1",
       name: "Aarav",
       meaning: "Peaceful and wise",
       gender: "boy" as const,
@@ -25,6 +26,7 @@ export default function Home() {
       rarityScore: 28,
     },
     {
+      id: "2",
       name: "Kashvi",
       meaning: "Shining and radiant",
       gender: "girl" as const,
@@ -32,10 +34,13 @@ export default function Home() {
       origin: "Sanskrit",
       styleLabel: "Premium",
       isPremium: true,
+      isLocked: true,
+      unlockCost: 1,
       usabilityScore: 88,
       rarityScore: 63,
     },
     {
+      id: "3",
       name: "Arin",
       meaning: "Mountain strength and peaceful energy",
       gender: "unisex" as const,
@@ -43,6 +48,8 @@ export default function Home() {
       origin: "Sanskrit",
       styleLabel: "Sanskrit",
       isPremium: true,
+      isLocked: true,
+      unlockCost: 1,
       usabilityScore: 92,
       rarityScore: 70,
     },
