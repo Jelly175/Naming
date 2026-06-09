@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,8 @@ type StickyBottomCtaProps = {
   primaryLabel: string;
   secondaryLabel?: string;
   helperText?: string;
+  primaryHref?: string;
+  secondaryHref?: string;
   onPrimaryClick?: () => void;
   onSecondaryClick?: () => void;
   className?: string;
@@ -21,9 +24,18 @@ export function StickyBottomCta({
   onPrimaryClick,
   onSecondaryClick,
   primaryIcon,
+  primaryHref,
   primaryLabel,
+  secondaryHref,
   secondaryLabel,
 }: StickyBottomCtaProps) {
+  const primaryContent = (
+    <>
+      {primaryLabel}
+      {primaryIcon}
+    </>
+  );
+
   return (
     <div
       className={cn(
@@ -37,19 +49,38 @@ export function StickyBottomCta({
         </p>
       ) : null}
       <div className="grid gap-2">
-        <Button fullWidth size="xl" variant="premium" onClick={onPrimaryClick}>
-          {primaryLabel}
-          {primaryIcon}
-        </Button>
-        {secondaryLabel ? (
-          <Button
-            fullWidth
-            size="lg"
-            variant="ghost"
-            onClick={onSecondaryClick}
+        {primaryHref ? (
+          <Link
+            className="inline-flex min-h-14 w-full items-center justify-center rounded-full bg-slate-950 px-7 text-base font-semibold tracking-[-0.01em] text-white shadow-float shadow-slate-950/20 transition-all duration-200 hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-950 active:scale-[0.99]"
+            href={primaryHref}
+            onClick={onPrimaryClick}
           >
-            {secondaryLabel}
+            {primaryContent}
+          </Link>
+        ) : (
+          <Button fullWidth size="xl" variant="premium" onClick={onPrimaryClick}>
+            {primaryContent}
           </Button>
+        )}
+        {secondaryLabel ? (
+          secondaryHref ? (
+            <Link
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-transparent px-6 text-base font-semibold tracking-[-0.01em] text-slate-700 transition-all duration-200 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500 active:scale-[0.99]"
+              href={secondaryHref}
+              onClick={onSecondaryClick}
+            >
+              {secondaryLabel}
+            </Link>
+          ) : (
+            <Button
+              fullWidth
+              size="lg"
+              variant="ghost"
+              onClick={onSecondaryClick}
+            >
+              {secondaryLabel}
+            </Button>
+          )
         ) : null}
       </div>
     </div>
