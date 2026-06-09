@@ -32,7 +32,7 @@ rm -rf baby-name-platform
 Recommended packages were installed with:
 
 ```bash
-npm install zod clsx tailwind-merge class-variance-authority lucide-react framer-motion react-hook-form @hookform/resolvers @prisma/client razorpay dotenv
+npm install zod clsx tailwind-merge class-variance-authority lucide-react framer-motion react-hook-form @hookform/resolvers @prisma/client @prisma/adapter-mariadb razorpay dotenv server-only
 npm install -D prisma
 npx prisma init --datasource-provider mysql
 ```
@@ -68,6 +68,8 @@ cp .env.example .env
 Fill in values inside `.env` when you have them:
 
 - `DATABASE_URL`
+- `DB_POOL_CONNECTION_LIMIT`
+- `DB_SSL`
 - `RAZORPAY_KEY_ID`
 - `RAZORPAY_KEY_SECRET`
 - `WHATSAPP_API_URL`
@@ -89,6 +91,12 @@ Check the health API:
 
 ```txt
 http://localhost:3000/api/health
+```
+
+After configuring `DATABASE_URL`, check the database health API:
+
+```txt
+http://localhost:3000/api/health/db
 ```
 
 ---
@@ -113,6 +121,8 @@ src/
   config/               App-level config such as site name
   features/             Larger feature modules as the app grows
   lib/                  Database and third-party integration helpers
+    db/client.ts        Secure pooled MySQL/Prisma client
+    db/health.ts        Database health-check helper
   repositories/         Database queries live here
   services/             Business logic lives here
   types/                Shared TypeScript types
@@ -217,9 +227,11 @@ class-variance-authority    Reusable component variants
 lucide-react                Icons
 framer-motion               Swipe and animation support
 @prisma/client              MySQL database client
+@prisma/adapter-mariadb     MySQL-compatible Prisma driver adapter with pooling
 prisma                      Database schema and migrations
 razorpay                    Razorpay server SDK
 dotenv                      Loads local env vars for Prisma config
+server-only                 Prevents server-only utilities from being imported by browser code
 ```
 
 Add later only when needed:
