@@ -3,9 +3,16 @@
 This folder contains the MySQL schema for the baby naming platform.
 
 - Raw SQL: `database/schema.sql`
+- Sample baby names: `database/seed-baby-names.sql`
 - Prisma models: `prisma/schema.prisma`
 
 The schema is simple enough for the first product version and structured enough to scale.
+
+To load sample baby names after creating the schema:
+
+```bash
+mysql -u USER -p DATABASE_NAME < database/seed-baby-names.sql
+```
 
 ---
 

@@ -123,6 +123,7 @@ prisma/
 
 database/
   schema.sql            Raw MySQL schema with indexes and relationships
+  seed-baby-names.sql   100 sample baby names for database testing
   README.md             Table explanations and scaling notes
 
 prisma.config.ts        Prisma 7 config
