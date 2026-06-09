@@ -1,7 +1,8 @@
 import { ArrowRight, Sparkles } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/page-container";
-import { Button } from "@/components/ui/button";
+import { NamePreviewCard } from "@/components/names/name-preview-card";
+import { Badge, Button, Card, SwipeableRail, Text } from "@/components/ui";
 
 export default function Home() {
   const modules = [
@@ -10,49 +11,101 @@ export default function Home() {
     "Premium unlock",
     "WhatsApp consultation",
   ];
+  const featuredNames = [
+    {
+      name: "Aarav",
+      meaning: "Peaceful and wise",
+      gender: "boy" as const,
+      numerologyNumber: 6,
+      styleLabel: "Modern",
+      usabilityScore: 96,
+      rarityScore: 28,
+    },
+    {
+      name: "Kashvi",
+      meaning: "Shining and radiant",
+      gender: "girl" as const,
+      numerologyNumber: 7,
+      styleLabel: "Premium",
+      isPremium: true,
+      usabilityScore: 88,
+      rarityScore: 63,
+    },
+    {
+      name: "Arin",
+      meaning: "Mountain strength and peaceful energy",
+      gender: "unisex" as const,
+      numerologyNumber: 6,
+      styleLabel: "Sanskrit",
+      isPremium: true,
+      usabilityScore: 92,
+      rarityScore: 70,
+    },
+  ];
 
   return (
-    <PageContainer className="gap-6">
-      <section className="rounded-[2rem] bg-gradient-to-br from-orange-50 via-white to-amber-50 p-5 shadow-sm ring-1 ring-orange-100">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-700 ring-1 ring-orange-100">
+    <PageContainer className="gap-7">
+      <Card
+        className="bg-gradient-to-br from-orange-50 via-white to-amber-50"
+        padding="lg"
+        variant="elevated"
+      >
+        <Badge className="mb-6 gap-2" variant="outline">
           <Sparkles aria-hidden="true" className="size-4" />
           Mobile-first baby naming
-        </div>
+        </Badge>
 
-        <h1 className="text-4xl font-bold tracking-tight text-slate-950">
+        <Text as="h1" variant="display">
           Find meaningful Indian baby names.
-        </h1>
+        </Text>
 
-        <p className="mt-4 text-base leading-7 text-slate-600">
+        <Text className="mt-4" variant="body">
           Starter architecture for search, numerology, premium unlocks,
           Razorpay payments, and WhatsApp consultation funnels.
-        </p>
+        </Text>
 
         <div className="mt-6 grid gap-3">
-          <Button className="w-full" size="lg">
+          <Button fullWidth size="xl">
             Start with name search
             <ArrowRight aria-hidden="true" className="ml-2 size-5" />
           </Button>
-          <Button className="w-full" size="lg" variant="secondary">
+          <Button fullWidth size="lg" variant="secondary">
             Open numerology flow
           </Button>
         </div>
+      </Card>
+
+      <section className="grid gap-3">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <Text as="p" variant="caption">
+              Swipeable UI
+            </Text>
+            <Text as="h2" variant="subtitle">
+              Premium name cards
+            </Text>
+          </div>
+          <Badge variant="premium">New</Badge>
+        </div>
+        <SwipeableRail
+          getKey={(item) => item.name}
+          items={featuredNames}
+          label="Featured baby names"
+          renderItem={(item) => <NamePreviewCard {...item} />}
+        />
       </section>
 
       <section className="grid gap-3">
-        <h2 className="text-lg font-semibold text-slate-950">
+        <Text as="h2" variant="subtitle">
           Initial modules
-        </h2>
+        </Text>
         {modules.map((module) => (
-          <div
-            className="rounded-3xl border border-orange-100 bg-white p-4 shadow-sm"
-            key={module}
-          >
+          <Card key={module} padding="sm" variant="default">
             <p className="text-sm font-semibold text-slate-900">{module}</p>
             <p className="mt-1 text-sm text-slate-500">
               Folder structure is ready for modular implementation.
             </p>
-          </div>
+          </Card>
         ))}
       </section>
     </PageContainer>

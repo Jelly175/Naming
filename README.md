@@ -114,8 +114,16 @@ src/
 
   components/           Reusable React components
     layout/             Mobile shell, bottom nav, page containers
+      sticky-bottom-cta.tsx Sticky mobile CTA for premium/payment flows
     ui/                 Generic UI such as Button
+      badge.tsx         Compact status and metadata labels
+      button.tsx        Large thumb-friendly buttons
+      card.tsx          Premium mobile card surfaces
+      input.tsx         Mobile form input
+      swipeable-rail.tsx Native swipeable scroll rail
+      text.tsx          Typography system
     names/              Future name cards, filters, swipe cards
+      name-preview-card.tsx Modern baby name card
     payment/            Future premium and payment components
 
   config/               App-level config such as site name
@@ -138,6 +146,7 @@ database/
 
 docs/
   api/name-search.md    Baby name search API filters, response, and performance notes
+  design/mobile-design-system.md Premium mobile UI design system
 
 prisma.config.ts        Prisma 7 config
 ```

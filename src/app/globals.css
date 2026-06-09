@@ -1,15 +1,50 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fffaf3;
-  --foreground: #172033;
+  --background: #fffaf7;
+  --foreground: #111827;
+  --surface: #ffffff;
+  --surface-soft: #fff7ed;
+  --surface-muted: #f8fafc;
+  --border-soft: #fed7aa;
+  --brand: #ea580c;
+  --brand-strong: #c2410c;
+  --brand-ink: #7c2d12;
+  --accent: #b45309;
+  --success: #15803d;
+  --danger: #dc2626;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-soft: var(--surface-soft);
+  --color-surface-muted: var(--surface-muted);
+  --color-border-soft: var(--border-soft);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-ink: var(--brand-ink);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --text-display: 2.75rem;
+  --text-display--line-height: 0.98;
+  --text-title: 1.75rem;
+  --text-title--line-height: 1.12;
+  --text-body: 1rem;
+  --text-body--line-height: 1.7;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.35;
+  --spacing-touch: 2.75rem;
+  --spacing-mobile-gutter: 1rem;
+  --spacing-card: 1.25rem;
+  --radius-card: 1.75rem;
+  --radius-panel: 2rem;
+  --shadow-card: 0 18px 45px -28px rgb(124 45 18 / 0.45);
+  --shadow-float: 0 22px 60px -32px rgb(15 23 42 / 0.55);
   --color-brand-50: #fff7ed;
   --color-brand-100: #ffedd5;
   --color-brand-600: #ea580c;
@@ -32,6 +67,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   min-height: 100dvh;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -49,3 +85,4 @@ textarea {
 .safe-area-bottom {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
+
