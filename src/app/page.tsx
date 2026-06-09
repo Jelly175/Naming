@@ -9,7 +9,7 @@ import {
 
 import { PageContainer } from "@/components/layout/page-container";
 import { StickyBottomCta } from "@/components/layout/sticky-bottom-cta";
-import { SwipeableNameCards } from "@/components/names/swipeable-name-cards";
+import { LazySwipeableNameCards } from "@/components/names/lazy-swipeable-name-cards";
 import { Badge, Button, Card, Input, Text } from "@/components/ui";
 
 export default function Home() {
@@ -210,12 +210,15 @@ export default function Home() {
           </Card>
         </section>
 
-        <section className="grid gap-3" id="premium">
+        <section
+          className="grid gap-3 [contain-intrinsic-size:760px] [content-visibility:auto]"
+          id="premium"
+        >
           <SectionHeader
             eyebrow="Premium shortlist"
             title="Unlock rare names with better fit scores."
           />
-          <SwipeableNameCards names={featuredNames} />
+          <LazySwipeableNameCards names={featuredNames} />
           <Card
             className="bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 text-white"
             padding="lg"
@@ -239,7 +242,10 @@ export default function Home() {
           </Card>
         </section>
 
-        <section className="grid gap-3" id="numerology">
+        <section
+          className="grid gap-3 [contain-intrinsic-size:420px] [content-visibility:auto]"
+          id="numerology"
+        >
           <SectionHeader
             eyebrow="Numerology"
             title="A simple number system for confident shortlisting."
@@ -268,7 +274,10 @@ export default function Home() {
           </Card>
         </section>
 
-        <section className="grid gap-3" id="consultation">
+        <section
+          className="grid gap-3 [contain-intrinsic-size:420px] [content-visibility:auto]"
+          id="consultation"
+        >
           <Card className="bg-white" padding="lg" variant="elevated">
             <Badge className="mb-5 gap-2" variant="success">
               <MessageCircle aria-hidden="true" className="size-4" />

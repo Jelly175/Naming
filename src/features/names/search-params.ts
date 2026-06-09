@@ -22,6 +22,14 @@ const optionalInteger = (min: number, max: number) =>
     z.coerce.number().int().min(min).max(max).optional(),
   );
 
+const optionalBoolean = z.preprocess(
+  emptyToUndefined,
+  z
+    .enum(["true", "false"])
+    .transform((value) => value === "true")
+    .default(false),
+);
+
 export const nameSearchQuerySchema = z.object({
   startingLetter: z.preprocess(
     emptyToUndefined,
@@ -61,6 +69,7 @@ export const nameSearchQuerySchema = z.object({
     emptyToUndefined,
     z.coerce.number().int().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
   ),
+  includeTotal: optionalBoolean,
 });
 
 export function parseNameSearchParams(
@@ -79,5 +88,6 @@ export function parseNameSearchParams(
     meaning: parsed.meaning,
     page: parsed.page,
     pageSize: parsed.pageSize,
+    includeTotal: parsed.includeTotal,
   };
 }

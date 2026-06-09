@@ -1,7 +1,7 @@
 import { Prisma } from "@/generated/prisma/client";
 import { PREMIUM_NAME_UNLOCK_COST } from "@/config/premium";
 import { getDb } from "@/lib/db/client";
-import { findUnlockedBabyNameIds } from "@/repositories/premium-repository";
+import { findUnlockedBabyNameIdsForNames } from "@/repositories/premium-repository";
 import type {
   BabyName,
   BabyNameGender,
@@ -146,12 +146,13 @@ export async function findNames(
 ): Promise<NameSearchResult> {
   const page = params.page ?? DEFAULT_PAGE;
   const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
+  const limit = pageSize + 1;
   const offset = (page - 1) * pageSize;
   const whereSql = buildWhereConditions(params);
   const orderBySql = buildOrderBy(params);
   const db = getDb();
 
-  const [rows, countRows, unlockedBabyNameIds] = await Promise.all([
+  const [rawRows, countRows] = await Promise.all([
     db.$queryRaw<BabyNameSearchRow[]>`
       SELECT
         CAST(id AS CHAR) AS id,
@@ -172,21 +173,29 @@ export async function findNames(
       FROM baby_names
       ${whereSql}
       ${orderBySql}
-      LIMIT ${pageSize}
+      LIMIT ${limit}
       OFFSET ${offset}
     `,
-    db.$queryRaw<CountRow[]>`
-      SELECT COUNT(*) AS total
-      FROM baby_names
-      ${whereSql}
-    `,
-    context?.viewerUserId
-      ? findUnlockedBabyNameIds(context.viewerUserId)
-      : Promise.resolve(new Set<string>()),
+    params.includeTotal
+      ? db.$queryRaw<CountRow[]>`
+          SELECT COUNT(*) AS total
+          FROM baby_names
+          ${whereSql}
+        `
+      : Promise.resolve([]),
   ]);
 
-  const total = Number(countRows[0]?.total ?? 0);
-  const totalPages = total === 0 ? 0 : Math.ceil(total / pageSize);
+  const hasNextPage = rawRows.length > pageSize;
+  const rows = rawRows.slice(0, pageSize);
+  const unlockedBabyNameIds = context?.viewerUserId
+    ? await findUnlockedBabyNameIdsForNames(
+        context.viewerUserId,
+        rows.filter((row) => Boolean(row.isPremium)).map((row) => row.id),
+      )
+    : new Set<string>();
+  const total = params.includeTotal ? Number(countRows[0]?.total ?? 0) : null;
+  const totalPages =
+    total === null ? null : total === 0 ? 0 : Math.ceil(total / pageSize);
 
   return {
     items: rows.map((row) => mapRowToBabyName(row, unlockedBabyNameIds)),
@@ -195,7 +204,7 @@ export async function findNames(
       pageSize,
       total,
       totalPages,
-      hasNextPage: page < totalPages,
+      hasNextPage,
       hasPreviousPage: page > 1,
     },
     filters: {
@@ -205,6 +214,7 @@ export async function findNames(
       religion: params.religion,
       premium: params.premium ?? "all",
       meaning: params.meaning,
+      includeTotal: params.includeTotal,
       page,
       pageSize,
     },

@@ -30,13 +30,14 @@ export type NameSearchParams = {
   premium?: PremiumFilter;
   page?: number;
   pageSize?: number;
+  includeTotal?: boolean;
 };
 
 export type NameSearchPagination = {
   page: number;
   pageSize: number;
-  total: number;
-  totalPages: number;
+  total: number | null;
+  totalPages: number | null;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
 };

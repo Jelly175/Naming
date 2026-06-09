@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
     const filters = parseNameSearchParams(request.nextUrl.searchParams);
     const viewerUserId = getOptionalUserId(request);
     const result = await searchNames(filters, { viewerUserId });
+    const isUserSpecific = Boolean(viewerUserId);
 
     return NextResponse.json(
       {
@@ -42,7 +43,10 @@ export async function GET(request: NextRequest) {
       },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+          "Cache-Control": isUserSpecific
+            ? "private, no-store"
+            : "public, s-maxage=60, stale-while-revalidate=300",
+          Vary: "x-user-id",
         },
       },
     );

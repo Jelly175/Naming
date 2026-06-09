@@ -123,6 +123,7 @@ src/
       swipeable-rail.tsx Native swipeable scroll rail
       text.tsx          Typography system
     names/              Future name cards, filters, swipe cards
+      lazy-swipeable-name-cards.tsx Lazy wrapper for animation bundle
       name-preview-card.tsx Modern baby name card
       swipeable-name-cards.tsx Animated swipe deck with save/unlock/WhatsApp actions
     payment/            Future premium and payment components
@@ -154,6 +155,7 @@ docs/
   api/name-search.md    Baby name search API filters, response, and performance notes
   api/premium-unlock.md Premium credits, unlock APIs, and masking behavior
   design/mobile-design-system.md Premium mobile UI design system
+  mobile-performance.md Mobile performance optimization notes
   numerology-engine.md  Numerology utility usage and examples
 
 prisma.config.ts        Prisma 7 config

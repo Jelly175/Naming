@@ -1,3 +1,4 @@
+import { Prisma } from "@/generated/prisma/client";
 import { PREMIUM_NAME_UNLOCK_COST } from "@/config/premium";
 import { getDb } from "@/lib/db/client";
 
@@ -239,6 +240,29 @@ export async function findUnlockedBabyNameIds(userId: bigint) {
     FROM premium_unlocks
     WHERE user_id = ${userId}
       AND baby_name_id IS NOT NULL
+      AND is_active = TRUE
+      AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+  `;
+
+  return new Set(rows.map((row) => row.babyNameId));
+}
+
+export async function findUnlockedBabyNameIdsForNames(
+  userId: bigint,
+  babyNameIds: string[],
+) {
+  if (babyNameIds.length === 0) {
+    return new Set<string>();
+  }
+
+  const db = getDb();
+  const rows = await db.$queryRaw<Array<{ babyNameId: string }>>`
+    SELECT CAST(baby_name_id AS CHAR) AS babyNameId
+    FROM premium_unlocks
+    WHERE user_id = ${userId}
+      AND baby_name_id IN (${Prisma.join(
+        babyNameIds.map((babyNameId) => BigInt(babyNameId)),
+      )})
       AND is_active = TRUE
       AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
   `;

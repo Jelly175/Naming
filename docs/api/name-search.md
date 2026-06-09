@@ -130,6 +130,7 @@ Default:
 ```txt
 page=1
 pageSize=20
+includeTotal=false
 ```
 
 Maximum:
@@ -145,6 +146,15 @@ Example:
 ```
 
 The maximum page size is intentionally small because most users are on mobile devices.
+
+By default, the API does not run `COUNT(*)`. This keeps mobile searches faster.
+If a screen truly needs exact totals, request:
+
+```txt
+/api/names?gender=girl&includeTotal=true
+```
+
+When `includeTotal=false`, the API still returns `hasNextPage` by fetching one extra row internally.
 
 ---
 
@@ -176,8 +186,8 @@ The maximum page size is intentionally small because most users are on mobile de
     "pagination": {
       "page": 1,
       "pageSize": 20,
-      "total": 100,
-      "totalPages": 5,
+      "total": null,
+      "totalPages": null,
       "hasNextPage": true,
       "hasPreviousPage": false
     },
