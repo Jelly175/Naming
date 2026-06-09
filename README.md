@@ -136,6 +136,9 @@ database/
   seed-baby-names.sql   100 sample baby names for database testing
   README.md             Table explanations and scaling notes
 
+docs/
+  api/name-search.md    Baby name search API filters, response, and performance notes
+
 prisma.config.ts        Prisma 7 config
 ```
 

@@ -1,9 +1,192 @@
-import type { BabyName, NameSearchParams } from "@/types/name";
+import { Prisma } from "@/generated/prisma/client";
+import { getDb } from "@/lib/db/client";
+import type {
+  BabyName,
+  BabyNameGender,
+  NameSearchParams,
+  NameSearchResult,
+} from "@/types/name";
 
-export async function findNames(
-  params: NameSearchParams,
-): Promise<BabyName[]> {
-  void params;
-  // Replace this with Prisma/MySQL queries once the schema is added.
-  return [];
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 20;
+
+const dbGenderByApiGender: Record<BabyNameGender, string> = {
+  boy: "BOY",
+  girl: "GIRL",
+  unisex: "UNISEX",
+};
+
+type BabyNameSearchRow = {
+  id: string;
+  name: string;
+  slug: string;
+  meaning: string;
+  gender: "BOY" | "GIRL" | "UNISEX";
+  religion: string | null;
+  origin: string | null;
+  startingLetter: string;
+  numerologyNumber: number | null;
+  styleLabel: string | null;
+  isPremium: boolean | number;
+  nameLength: number;
+  pronunciationScore: string | number | null;
+  usabilityScore: string | number | null;
+  rarityScore: string | number | null;
+};
+
+type CountRow = {
+  total: bigint | number | string;
+};
+
+function toApiGender(gender: BabyNameSearchRow["gender"]): BabyNameGender {
+  return gender.toLowerCase() as BabyNameGender;
+}
+
+function optionalNumber(value: string | number | null) {
+  return value === null ? undefined : Number(value);
+}
+
+function mapRowToBabyName(row: BabyNameSearchRow): BabyName {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    meaning: row.meaning,
+    gender: toApiGender(row.gender),
+    religion: row.religion ?? undefined,
+    origin: row.origin ?? undefined,
+    startingLetter: row.startingLetter,
+    numerologyNumber: row.numerologyNumber ?? undefined,
+    styleLabel: row.styleLabel ?? undefined,
+    isPremium: Boolean(row.isPremium),
+    nameLength: row.nameLength,
+    pronunciationScore: optionalNumber(row.pronunciationScore),
+    usabilityScore: optionalNumber(row.usabilityScore),
+    rarityScore: optionalNumber(row.rarityScore),
+  };
+}
+
+function buildWhereConditions(params: NameSearchParams) {
+  const conditions: Prisma.Sql[] = [];
+
+  if (params.startingLetter) {
+    conditions.push(Prisma.sql`starting_letter = ${params.startingLetter}`);
+  }
+
+  if (params.gender) {
+    conditions.push(Prisma.sql`gender = ${dbGenderByApiGender[params.gender]}`);
+  }
+
+  if (params.numerologyNumber) {
+    conditions.push(
+      Prisma.sql`numerology_number = ${params.numerologyNumber}`,
+    );
+  }
+
+  if (params.religion) {
+    conditions.push(Prisma.sql`religion = ${params.religion}`);
+  }
+
+  if (params.premium === "free") {
+    conditions.push(Prisma.sql`is_premium = FALSE`);
+  }
+
+  if (params.premium === "premium") {
+    conditions.push(Prisma.sql`is_premium = TRUE`);
+  }
+
+  if (params.meaning) {
+    conditions.push(
+      Prisma.sql`MATCH(name, meaning) AGAINST (${params.meaning} IN NATURAL LANGUAGE MODE)`,
+    );
+  }
+
+  return conditions.length > 0
+    ? Prisma.sql`WHERE ${Prisma.join(conditions, " AND ")}`
+    : Prisma.empty;
+}
+
+function buildOrderBy(params: NameSearchParams) {
+  if (params.meaning) {
+    return Prisma.sql`
+      ORDER BY
+        MATCH(name, meaning) AGAINST (${params.meaning} IN NATURAL LANGUAGE MODE) DESC,
+        usability_score DESC,
+        rarity_score DESC,
+        name ASC
+    `;
+  }
+
+  return Prisma.sql`
+    ORDER BY
+      search_count DESC,
+      usability_score DESC,
+      rarity_score DESC,
+      name ASC
+  `;
+}
+
+export async function findNames(params: NameSearchParams): Promise<NameSearchResult> {
+  const page = params.page ?? DEFAULT_PAGE;
+  const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
+  const offset = (page - 1) * pageSize;
+  const whereSql = buildWhereConditions(params);
+  const orderBySql = buildOrderBy(params);
+  const db = getDb();
+
+  const [rows, countRows] = await Promise.all([
+    db.$queryRaw<BabyNameSearchRow[]>`
+      SELECT
+        CAST(id AS CHAR) AS id,
+        name,
+        slug,
+        meaning,
+        gender,
+        religion,
+        origin,
+        starting_letter AS startingLetter,
+        numerology_number AS numerologyNumber,
+        style_label AS styleLabel,
+        is_premium AS isPremium,
+        name_length AS nameLength,
+        pronunciation_score AS pronunciationScore,
+        usability_score AS usabilityScore,
+        rarity_score AS rarityScore
+      FROM baby_names
+      ${whereSql}
+      ${orderBySql}
+      LIMIT ${pageSize}
+      OFFSET ${offset}
+    `,
+    db.$queryRaw<CountRow[]>`
+      SELECT COUNT(*) AS total
+      FROM baby_names
+      ${whereSql}
+    `,
+  ]);
+
+  const total = Number(countRows[0]?.total ?? 0);
+  const totalPages = total === 0 ? 0 : Math.ceil(total / pageSize);
+
+  return {
+    items: rows.map(mapRowToBabyName),
+    pagination: {
+      page,
+      pageSize,
+      total,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    },
+    filters: {
+      startingLetter: params.startingLetter,
+      gender: params.gender,
+      numerologyNumber: params.numerologyNumber,
+      religion: params.religion,
+      premium: params.premium ?? "all",
+      meaning: params.meaning,
+      page,
+      pageSize,
+    },
+  };
 }

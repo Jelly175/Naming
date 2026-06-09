@@ -1,24 +1,47 @@
 export type BabyNameGender = "boy" | "girl" | "unisex";
+export type PremiumFilter = "all" | "free" | "premium";
 
 export type BabyName = {
   id: string;
   name: string;
+  slug: string;
   meaning: string;
   gender: BabyNameGender;
   religion?: string;
   origin?: string;
-  language?: string;
   startingLetter?: string;
-  rashi?: string;
-  nakshatra?: string;
   numerologyNumber?: number;
+  styleLabel?: string;
   isPremium: boolean;
+  nameLength?: number;
+  pronunciationScore?: number;
+  usabilityScore?: number;
+  rarityScore?: number;
 };
 
 export type NameSearchParams = {
-  query?: string;
+  meaning?: string;
   gender?: BabyNameGender;
   religion?: string;
   startingLetter?: string;
+  numerologyNumber?: number;
+  premium?: PremiumFilter;
   page?: number;
+  pageSize?: number;
+};
+
+export type NameSearchPagination = {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+};
+
+export type NameSearchResult = {
+  items: BabyName[];
+  pagination: NameSearchPagination;
+  filters: Required<Pick<NameSearchParams, "page" | "pageSize" | "premium">> &
+    Omit<NameSearchParams, "page" | "pageSize" | "premium">;
 };
