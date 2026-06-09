@@ -9,8 +9,8 @@ import {
 
 import { PageContainer } from "@/components/layout/page-container";
 import { StickyBottomCta } from "@/components/layout/sticky-bottom-cta";
-import { NamePreviewCard } from "@/components/names/name-preview-card";
-import { Badge, Button, Card, Input, SwipeableRail, Text } from "@/components/ui";
+import { SwipeableNameCards } from "@/components/names/swipeable-name-cards";
+import { Badge, Button, Card, Input, Text } from "@/components/ui";
 
 export default function Home() {
   const featuredNames = [
@@ -19,6 +19,7 @@ export default function Home() {
       meaning: "Peaceful and wise",
       gender: "boy" as const,
       numerologyNumber: 6,
+      origin: "Sanskrit",
       styleLabel: "Modern",
       usabilityScore: 96,
       rarityScore: 28,
@@ -28,6 +29,7 @@ export default function Home() {
       meaning: "Shining and radiant",
       gender: "girl" as const,
       numerologyNumber: 7,
+      origin: "Sanskrit",
       styleLabel: "Premium",
       isPremium: true,
       usabilityScore: 88,
@@ -38,6 +40,7 @@ export default function Home() {
       meaning: "Mountain strength and peaceful energy",
       gender: "unisex" as const,
       numerologyNumber: 6,
+      origin: "Sanskrit",
       styleLabel: "Sanskrit",
       isPremium: true,
       usabilityScore: 92,
@@ -205,12 +208,7 @@ export default function Home() {
             eyebrow="Premium shortlist"
             title="Unlock rare names with better fit scores."
           />
-          <SwipeableRail
-            getKey={(item) => item.name}
-            items={featuredNames}
-            label="Premium baby names"
-            renderItem={(item) => <NamePreviewCard {...item} />}
-          />
+          <SwipeableNameCards names={featuredNames} />
           <Card
             className="bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 text-white"
             padding="lg"

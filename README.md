@@ -124,6 +124,7 @@ src/
       text.tsx          Typography system
     names/              Future name cards, filters, swipe cards
       name-preview-card.tsx Modern baby name card
+      swipeable-name-cards.tsx Animated swipe deck with save/unlock/WhatsApp actions
     payment/            Future premium and payment components
 
   config/               App-level config such as site name

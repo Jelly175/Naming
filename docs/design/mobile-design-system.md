@@ -41,6 +41,9 @@ src/components/layout/sticky-bottom-cta.tsx
 
 src/components/names/name-preview-card.tsx
   Modern baby name card for search, swipe, and premium screens.
+
+src/components/names/swipeable-name-cards.tsx
+  Animated swipe deck with save, unlock premium, and WhatsApp expert actions.
 ```
 
 ---
@@ -266,3 +269,43 @@ Avoid:
 - large animation libraries for basic interactions
 
 The current swipe interaction is native CSS scroll snapping through Tailwind classes.
+
+---
+
+### Swipeable baby name cards
+
+Use this when parents should browse one name at a time with gestures.
+
+```tsx
+<SwipeableNameCards
+  names={[
+    {
+      name: "Aarav",
+      meaning: "Peaceful and wise",
+      numerologyNumber: 6,
+      origin: "Sanskrit",
+      usabilityScore: 96,
+      isPremium: false,
+      styleLabel: "Modern",
+    },
+  ]}
+/>
+```
+
+Each card shows:
+
+- name
+- meaning
+- numerology number
+- origin
+- usability score
+- premium tag
+- style label
+
+Actions:
+
+- save
+- unlock premium
+- ask expert on WhatsApp
+
+The component uses Framer Motion for smooth drag gestures and Tailwind for the visual system.
